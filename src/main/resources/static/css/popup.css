@@ -1,0 +1,23 @@
+.thumbnail {width: 300px;height: 300px;object-fit: cover;}
+li {list-style-type: none;}
+.three-top {float: left;padding: 10px;width: 33%;}
+.ablyText {color: #777;font-size: 20px;font-weight: bold;}
+.float-end {margin-left: 20px;}
+.pop-layer .pop-container {padding: 20px 25px;}
+.pop-layer p.ctxt {color: #666;line-height: 25px;}
+.pop-layer .btn-r {width: 100%;margin: 10px 0 20px;padding-top: 10px;border-top: 1px solid #DDD;text-align: right;}
+.pop-layer {display: none;position: absolute;top: 50%;left: 50%;width: 410px;height: auto;background-color: #fff;border: 5px solid #3571B5;z-index: 10;}
+.dim-layer {display: none;position: fixed;_position: absolute;top: 0;left: 0;width: 100%;height: 100%;z-index: 100;}
+.dim-layer .dimBg {position: absolute;top: 0;left: 0;width: 100%;height: 100%;background: #000;opacity: .5;filter: alpha(opacity=50);}
+.dim-layer .pop-layer {display: block;}
+a.btn-layerClose {display: inline-block;height: 30px;padding: 0 14px 0;border: 1px solid #304a8a;background-color: #3f5a9d;font-size: 13px;color: #fff;line-height: 25px;text-decoration : none;font-weight: bold;}
+a.btn-layerClose:hover {border: 1px solid #091940;background-color: #1f326a;color: #fff;}
+a.btn-layerAdd {display: inline-block;height: 30px;padding: 0 14px 0;border: 1px solid #304a8a;background-color: #ff3333;font-size: 13px;color: #fff;line-height: 25px;text-decoration : none;font-weight: bold;}
+a.btn-layerAdd:hover {border: 1px solid #091940;background-color: #ff0000;color: #fff;}
+.th-field {text-align: center;}
+#mask {position: absolute;left: 0;top: 0;z-index: 999;background-color: #000000;display: none;}
+.layerpop {display: none;z-index: 1000;border: 2px solid #ccc;background: #fff;cursor: move;}
+.layerpop_area .title {padding: 10px 10px 10px 10px;border: 0px solid #aaaaaa;background: #f1f1f1;color: #3eb0ce;font-size: 1.3em;font-weight: bold;line-height: 24px;}
+.layerpop_area .layerpop_close {width: 25px;height: 25px;display: block;position: absolute;top: 10px;right: 10px;background: transparent url('/image/btn_exit_off.png') no-repeat;}
+.layerpop_area .layerpop_close:hover {background: transparent url('/image/btn_exit_on.png') no-repeat;cursor: pointer;}
+.layerpop_area .content {width: 96%;margin: 2%;color: #828282;}

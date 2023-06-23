@@ -1,0 +1,304 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.7.0.js"
+            integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+            crossorigin="anonymous"></script>
+    <link th:href="@{/css/bootstrap.min.css}" href="../css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/popup.css}" href="../css/popup.css" rel="stylesheet">
+    <script>
+        function wishBoxClick() { // 내 찜 박스용 팝업
+            layer_popup('#layer2');
+        }
+
+        function layer_popup(el) { // 내 찜 박스용 팝업
+            var $el = $(el);
+            var isDim = $el.prev().hasClass('dimBg');
+
+            isDim ? $('.dim-layer').fadeIn() : $el.fadeIn();
+
+            var $elWidth = ~~($el.outerWidth()),
+                $elHeight = ~~($el.outerHeight()),
+                docWidth = $(document).width(),
+                docHeight = $(document).height();
+
+            if ($elHeight < docHeight || $elWidth < docWidth) {
+                $el.css({
+                    marginTop: -$elHeight /2,
+                    marginLeft: -$elWidth/2
+                })
+            } else {
+                $el.css({top: 0, left: 0});
+            }
+
+            $el.find('a.btn-layerClose').click(function(){
+                location.reload();
+            });
+
+            $('.layer .dimBg').click(function() {
+                $('.dim-layer').fadeOut();
+                return false;
+            });
+
+            if(isDim) {
+                $('html, body').css({'overflow': 'hidden', 'height': '100%'});
+                $('#element').on('scroll touchmove mousewheel', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                });
+            }
+        }
+
+        function wishBoxAddClick() { // 내 찜 박스명 추가
+            let check = false;
+            $('input[name=wishBoxName]').each(function (index, item) {
+                if($(item).attr('disabled') != 'disabled') {
+                    check = true;
+                }
+                if(check) {return;}
+            });
+            if(check) {return;}
+
+            let html = '<tr><td><input type="text" name="wishBoxName" maxlength="10"></td><td align="center"><button onclick="wishBoxInsertSaveClick(this)">저장</button></td><td align="center"><button onclick="wishBoxDeleteSaveClick(this)">삭제</button></td></tr>';
+            $('#wishBoxTable').append(html);
+        }
+
+        function wishBoxInsertSaveClick(btn) { // 내 찜 박스 신규 추가 저장
+            if(btn.parentNode.previousElementSibling.firstChild.value.trim() == '') {
+                alert("서랍명을 입력해 주세요.");
+                    return;
+            }
+
+            $.ajax({
+                url: '/insertWishBox',
+                type: 'POST',
+                data: {
+                    boxName: btn.parentNode.previousElementSibling.firstChild.value.trim()
+                },
+                async: false,
+                success: function onData (data) {
+                    if(data == '000000') {
+                        alert("이미 추가된 이름의 찜 박스명 입니다.");
+                    } else {
+                        btn.textContent = '수정';
+                        $(btn.parentNode.previousElementSibling.firstChild).attr('id', 'wishBoxName' + data);
+                        $(btn.parentNode.previousElementSibling.firstChild).attr('itemBoxSeq', data);
+                        $(btn).attr('onclick', 'wishBoxUpdateSaveClick(this)');
+                        $(btn).attr('itemBoxSeq', data);
+                        $(btn.parentNode.previousElementSibling.firstChild).attr('disabled', true);
+                    }
+                },
+                error: function onError (error) {
+                    alert(error);
+                }
+            });
+        }
+
+        function wishBoxDeleteSaveClick(btn) { // 내 찜 박스 삭제
+            if(btn.getAttribute('itemBoxSeq') == null) { // 저장 안된 데이터 삭제
+                btn.parentNode.parentNode.remove();
+            } else { // 저장 되었던 데이터 삭제
+                $.ajax({
+                    url: '/deleteWishBox',
+                    type: 'POST',
+                    data: {
+                        itemBoxSeq: btn.getAttribute('itemBoxSeq')
+                    },
+                    async: false,
+                    success: function onData (data) {
+                        btn.parentNode.parentNode.remove();
+                    },
+                    error: function onError (error) {
+                        alert(error);
+                    }
+                });
+            }
+        }
+
+        function wishBoxUpdateSaveClick(btn) { // 내 찜 박스 기존 변경 저장
+            if(btn.textContent != '저장') { // 클릭 시 수정 가능 활성화
+                let check = false;
+                $('input[name=wishBoxName]').each(function (index, item) {
+                    if($(item).attr('disabled') != 'disabled') {
+                        check = true;
+                    }
+                    if(check) {return;}
+                });
+                if(check) {return;}
+
+                btn.textContent = '저장';
+                $('#wishBoxName' + btn.getAttribute('itemBoxSeq')).removeAttr('disabled');
+            } else { // 클릭 시 수정 저장
+                if( $('#wishBoxName' + btn.getAttribute('itemBoxSeq')).val().trim() == '') {
+                    alert("서랍명을 입력해 주세요.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '/updateWishBox',
+                    type: 'POST',
+                    data: {
+                        itemBoxSeq: btn.getAttribute('itemBoxSeq'),
+                        boxName: $('#wishBoxName' + btn.getAttribute('itemBoxSeq')).val()
+                    },
+                    async: false,
+                    success: function onData (data) {
+                        if(data == '000000') {
+                            alert("이미 추가된 이름의 찜 박스명 입니다.");
+                        } else {
+                            btn.textContent = '수정';
+                            $('#wishBoxName' + btn.getAttribute('itemBoxSeq')).attr('disabled', true);
+                        }
+                    },
+                    error: function onError (error) {
+                        alert(error);
+                    }
+                });
+            }
+        }
+
+        function wishListClick(btn) { // 찜 상품 추가용 팝업
+            $.ajax({
+                url: '/checkWishBox',
+                type: 'POST',
+                async: false,
+                success: function onData (data) {
+                    if(data.length == 0) {
+                        alert("내 찜 서랍을 먼저 추가해주세요.");
+                    } else {
+                        $('#boxSelector').empty();
+                        $.each(data, function(index, item) {
+                            let html = '<option value="' + item.itemBoxSeq + '">' + item.boxName + '</option>';
+                            $("#boxSelector").append(html);
+                        });
+                        $('#wishItemName').text(btn.getAttribute('itemName'));
+                        $('#wishItemName').attr('itemSeq', btn.getAttribute('itemSeq'));
+                        popupOpen(); // 찜 상품 추가용 팝업 노출
+                        wrapWindowByMask(); // 찜 상품 추가용 팝업 넓기 계산
+                    }
+                },
+                error: function onError (error) {
+                    alert(error);
+                }
+            });
+        }
+
+        function popupOpen() { // 찜 상품 추가용 팝업 노출
+            $('.layerpop').css("position", "absolute");
+            $('.layerpop').css("top",(($(window).height() - $('.layerpop').outerHeight()) / 4) + $(window).scrollTop());
+            $('.layerpop').css("left",(($(window).width() - $('.layerpop').outerWidth()) / 2) + $(window).scrollLeft());
+            $('#layerbox').show();
+        }
+
+        function wrapWindowByMask() { // 찜 상품 추가용 팝업 넓기 계산
+            var maskHeight = $(document).height();
+            var maskWidth = $(window).width();
+
+            $('#mask').css({
+                'width': maskWidth,
+                'height': maskHeight
+            });
+
+            $('#mask').fadeTo("slow", 0.5);
+        }
+
+        function popupClose() { // 찜 상품 추가용 팝업 닫기
+            $('#layerbox').hide();
+            $('#mask').hide();
+        }
+
+        function addWishItem(btn) { // 찜 상품 추가용 버튼(미완료)
+            $.ajax({
+                url: '/addWishItem',
+                type: 'POST',
+                data: {
+                    itemSeq: $('#wishItemName').attr('itemSeq'),
+                    itemBoxSeq: $("#boxSelector option:selected").val()
+                },
+                async: false,
+                success: function onData (data) {
+                },
+                error: function onError (error) {
+                    alert(error);
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div class="container" style="max-width: 1500">
+    <div class="py-5 text-center">
+        <h2>상품 목록</h2>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-primary float-end" type="button" onclick="wishBoxClick()">내 찜 서랍</button>
+            <button class="btn btn-primary float-end" type="button" onclick="location.href='/wishList'">찜 리스트</button>
+        </div>
+    </div>
+    <hr class="my-4">
+    <ul th:each="item : ${items}">
+        <li class="three-top">
+            <div style="max-width: 300px">
+                <div>
+                    <img th:src="${item.thumbnail}" class="thumbnail">
+                </div>
+                <div>
+                    <div th:text="${item.itemName}" class="ablyText">
+                        상품명
+                    </div>
+                    <div>
+                        <dd><strong th:text="|${#numbers.formatInteger(item.price, 0, 'COMMA')}원|">97,300원</strong><button onclick="wishListClick(this)" th:itemName="${item.itemName}" th:itemSeq="${item.itemSeq}" style="float:right;">찜하기</button></dd>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<div class="dim-layer">
+    <div class="dimBg"></div>
+    <div id="layer2" class="pop-layer">
+        <div class="pop-container">
+            <div class="pop-conts" style="max-height: 500px;overflow: scroll;overflow-x: hidden">
+                <p class="ctxt mb20">
+                    <h4>내 찜 서랍</h4>
+                </p>
+                <div class="btn-r"></div>
+                <table id="wishBoxTable">
+                    <th width="200px">서랍명</th>
+                    <th width="70px" class="th-field">수정</th>
+                    <th width="70px" class="th-field">삭제</th>
+                    <tr th:each="itemWishBox : ${itemWishBoxs}">
+                        <td><input type="text" th:value="${itemWishBox.boxName}" name="wishBoxName" th:id="'wishBoxName'+${itemWishBox.itemBoxSeq}" th:maxlength="10" th:itemBoxSeq="${itemWishBox.itemBoxSeq}" disabled></td>
+                        <td align="center"><button onclick="wishBoxUpdateSaveClick(this)" th:itemBoxSeq="${itemWishBox.itemBoxSeq}">수정</button></td>
+                        <td align="center"><button onclick="wishBoxDeleteSaveClick(this)" th:itemBoxSeq="${itemWishBox.itemBoxSeq}">삭제</button></td>
+                    </tr>
+                </table>
+                <div class="btn-r">
+                    <a href="#" class="btn-layerAdd" onclick="wishBoxAddClick()">추가</a>
+                    <a href="#" class="btn-layerClose">닫기</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="mask"></div>
+<div id="layerbox" class="layerpop"
+     style="width: 300px; height: 200px;">
+    <article class="layerpop_area">
+        <div class="title">찜 리스트 추가</div>
+        <a href="javascript:popupClose();" class="layerpop_close" id="layerbox_close"></a>
+        <div class="content">
+            <h2 id="wishItemName"></h2>
+            <select id="boxSelector">
+            </select>
+            <button onclick="addWishItem()">추가하기</button>
+        </div>
+    </article>
+</div>
+</body>
+</html>
